@@ -12,13 +12,86 @@ I, [**Fajrun Wahidil Muharram**], confirm that the work presented in this assess
 
 date: `r format(Sys.time(), '%d %B, %Y')`
 
-# Start your response here
-
-## Initial project scope
+# Initial project scope
 
 Research question:
 How have the eviction rate in New York City evolved over the years (2017-2023), and are there discernible temporal patterns or trends in the distribution of evictions accross different boroughs and community district?
 
-Null hyposthesis:
-There is no significant temporal variation in eviction rates accross New York City during 2017-2023. Eviction rates remains constant over time, and any observed differences are due to random fluctuations.
+Null hypothesis:
+There is no significant temporal variation in eviction rates across New York City during 2017-2023. Eviction rates remains constant over time, and any observed differences are due to random fluctuations.
+
+# Package installing & loading
+
+```{r install packages}
+install.packages(c("tidyverse", "sf", "lubridate", "ggplot2", "here", "janitor"))
+library(tidyverse)
+library(sf)
+library(lubridate)
+library(ggplot2)
+library(here)
+library(janitor)
+```
+# Data loading
+```{r load data}
+# set working dictionary
+here::here()
+
+# load csv
+eviction <- read_csv(here("data", "Evictions.csv"), na="NULL") 
+
+# load the shapefile
+nyc_boroughs <- st_read(here("data", "geo_export_65fab86c-efea-4868-9ae3-df21d21e1c3a.shp"))
+```
+# Data Exploration and Cleaning/Wrangling
+```{r explore data}
+# tidy the csv data
+eviction <- eviction %>%  
+clean_names()
+
+# explore the csv data
+Datatypelist <- eviction %>%
+  summarise_all(class) %>%
+  pivot_longer(everything(), 
+               names_to="All_variables", 
+               values_to="Variable_class")
+
+Datatypelist
+
+# Convert eviction data to sf object
+eviction_sf <- eviction %>%
+  filter(longitude<0 & latitude>0)%>%
+  st_as_sf(., coords = c("longitude", "latitude"), 
+                   crs = 4326)
+
+# clean the shapefile
+nyc_boroughs <- nyc_boroughs %>%
+  clean_names() %>%
+  st_transform(crs = 4326)
+
+nyc_boroughs
+
+# Perform spatial join with NYC boroughs shapefile
+eviction_with_boroughs <- st_join(eviction_sf, nyc_boroughs, join = st_within)
+
+```
+
+```{r}
+# Plot the NYC boroughs
+ggplot() +
+  geom_sf(data = nyc_boroughs, fill = "lightgrey", color = "red") +
+  geom_sf(data = eviction_with_boroughs, aes(fill = borough), color = "blue") +
+  labs(title = "Evictions Merged with NYC Boroughs",
+       fill = "borough") +
+  theme_minimal()
+
+```
+
+
+
+
+
+
+
+
+
 
