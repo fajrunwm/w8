@@ -67,9 +67,9 @@ library(spatstat)
 Read in data - note the NA value. 
 
 ```{r}
-evictions_points <- read_csv("Data/Evictions.csv", na=c(" "))
+evictions_points <- read_csv("data/Evictions.csv", na=c(" "))
 
-community_areas <- st_read("Data/Community Districts/geo_export_95f4fa4a-5cb3-4a12-a032-2bba2be99838.shp")
+community_areas <- st_read("data/geo_export_65fab86c-efea-4868-9ae3-df21d21e1c3a.shp")
 ```
 Check class - added na argument in code above.
 
@@ -122,6 +122,7 @@ EXPLAIN...Check the are all within the boundaries...through a spatial subset...
 Error of st_crs(x) == st_crs(y)  - means the CRSs of the data doesn't match. I think the error is just how they are set in the data, but i will transform the community areas 
 
 ```{r}
+community_areas
 community_areas <- community_areas%>%
   st_transform(., 4326)
 
@@ -139,7 +140,7 @@ EXPLAIN...I have used string detect here to find the rows that have 2020 within 
 points_sub_2020<-points_sub%>%
   clean_names()%>%
   filter(str_detect(executed_date, "2020"))%>%
- # filter(eviction_legal_possession=="Eviction")%>%
+  #filter(eviction_legal_possession=="Eviction")%>%
   filter(residential_commercial=="Residential")
 ```
 
@@ -162,6 +163,7 @@ error that only projected coordinates can be used for ppp object! let's project 
 A better one might be https://epsg.io/6538 as it uses meters 
 
 ```{r}
+community_areas
 community_areas_projected <- community_areas %>%
   st_transform(., 6538)
 
@@ -179,6 +181,7 @@ points_sub_2020_projected_sp<- points_sub_2020_projected %>%
 points_sub_2020_projected_sp.ppp <- ppp(x=points_sub_2020_projected_sp@coords[,1],
                           y=points_sub_2020_projected_sp@coords[,2],
                           window=window)
+plot(points_sub_2020_projected_sp.ppp)
 ```
 Ripley k
 
@@ -203,6 +206,7 @@ Ripley's K suggests a higher eps, but doesn't consider the min points. I tried a
 
 ```{r}
 library(sp)
+library(plot.new)
 
 #first extract the points from the spatial points data frame
 points_todf <- points_sub_2020_projected_sp %>%
