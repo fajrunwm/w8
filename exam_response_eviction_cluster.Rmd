@@ -60,6 +60,7 @@ library(sf)
 library(tmap)
 library(janitor)
 library(spatstat)
+library(here)
 ```
 
 ## Data loading
@@ -67,9 +68,9 @@ library(spatstat)
 Read in data - note the NA value. 
 
 ```{r}
-evictions_points <- read_csv("data/Evictions.csv", na=c(" "))
+evictions_points <- read_csv(here::here("data", "Evictions.csv"), na= "NULL")
 
-community_areas <- st_read("data/geo_export_65fab86c-efea-4868-9ae3-df21d21e1c3a.shp")
+community_areas <- st_read(here::here("data", "geo_export_65fab86c-efea-4868-9ae3-df21d21e1c3a.shp"))
 ```
 Check class - added na argument in code above.
 
