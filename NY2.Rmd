@@ -1,0 +1,97 @@
+# Step 1: Load Necessary Packages and Data
+```{r}
+# Install and load required packages
+# install.packages("tidyverse")
+# install.packages("sf")
+# install.packages("ggplot2")
+# install.packages("here")
+# install.packages("janitor")
+
+# Load packages
+library(tidyverse)
+library(sf)
+library(ggplot2)
+library(here)
+library(janitor)
+```
+```{r}
+# Set working directory to where your data is stored
+here::here()
+
+# Load the eviction data
+eviction_data <- read_csv(here("data", "Evictions.csv"), na = " ")
+
+# Load the shapefile of NYC boroughs
+nyc_boroughs <- st_read(here("data", "geo_export_65fab86c-efea-4868-9ae3-df21d21e1c3a.shp"))
+
+```
+# Step 2: Data Exploration and Cleaning
+
+```{r}
+# Explore the structure of the eviction data
+str(eviction_data)
+
+# Check for missing values
+summary(eviction_data)
+
+# Explore the first few rows of the data
+head(eviction_data)
+
+```
+# Step 3: Merge Data with NYC Boroughs Shapefile
+```{r}
+# Remove rows with missing values using na.omit()
+eviction_data <- na.omit(eviction_data)
+
+# Convert eviction data to sf object
+eviction_sf <- st_as_sf(eviction_data, coords = c("Longitude", "Latitude"), crs = st_crs(nyc_boroughs))
+
+# Perform spatial join with NYC boroughs shapefile
+eviction_with_boroughs <- st_join(eviction_sf, nyc_boroughs, join = st_within)
+
+head(eviction_with_boroughs)
+```
+# Step 4: Temporal Analysis
+
+```{r}
+# Convert 'Executed Date' to Date format
+eviction_with_boroughs$`Executed Date` <- as.Date.character(eviction_with_boroughs$`Executed Date`, format="%m/%d/%Y")
+
+# Create a time series plot
+ggplot(eviction_with_boroughs, aes(x = eviction_with_boroughs$`Executed Date`, fill = BOROUGH)) +
+  geom_bar() +
+  labs(title = "Evictions Over Time",
+       x = "Year",
+       y = "Number of Evictions",
+       fill = "Borough") +
+  theme_minimal()
+```
+# Spatial Analysis and Mapping
+```{r}
+# Create a choropleth map of eviction rates
+?ggplot2
+ggplot2(eviction_with_boroughs) +
+  geom_sf(aes(fill = stat(count)), color = "white") +
+  scale_fill_viridis_c() +
+  labs(title = "Eviction Rates Across NYC Boroughs",
+       fill = "Number of Evictions") +
+  theme_minimal()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
