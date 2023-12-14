@@ -35,9 +35,9 @@ WRITE A PROJECT SCOPE (we will cover this in the next few weeks in more detail)
 > A question for spatial regression..."What are the factors that might lead to variation in evictions across New York in 2020?"
 
 The null hypothesis that I am going to test empirically is that there is no relationship 
-  * with points 
-  * densities of community districts 
-  * with other factors that across New York
+  * with points ==> by doing PPA/PPP
+  * densities of community districts ==> by doing Spatial autocorrelation 
+  * with other factors that across New York ==> by doing Spatial regression
 
 * Data
   * What do i have
@@ -72,6 +72,7 @@ evictions_points <- read_csv(here::here("data", "Evictions.csv"), na= "NULL")
 
 community_areas <- st_read(here::here("data", "geo_export_65fab86c-efea-4868-9ae3-df21d21e1c3a.shp"))
 ```
+
 Check class - added na argument in code above.
 
 EXPLAIN what i am doing here - checking the variable type to make sure there are no character columns that should be numeric due to NAs
@@ -85,21 +86,20 @@ Datatypelist <- evictions_points %>%
 
 Datatypelist
 ```
+
 ## Data wrangling
 
 Check the coordinates on this website for the csv - https://www.latlong.net/. Looks like the are in WGS84. Convert csv to sf object the map
 
-Missing values for coordiates thrown an error so i need to filter them out...
+Missing values for coordinates thrown an error so i need to filter them out...
 
 ```{r}
 points <- evictions_points%>%
-  #also possible to use something like drop_na(Longitdue, Latitude) 
+  #also possible to use something like drop_na(Longitude, Latitude) 
   filter(Longitude<0 & Latitude>0)%>%
 
   st_as_sf(., coords = c("Longitude", "Latitude"), 
                    crs = 4326)
-
-
 ```
 
 64214 features now from 71,040 in the original dataset.
@@ -145,7 +145,7 @@ points_sub_2020<-points_sub%>%
   filter(residential_commercial=="Residential")
 ```
 
-This has reduced it to 600 points, if i remove the legal possession/eviction line then it's around 2,000
+This has reduced it to 60 points, if i remove the legal possession/eviction line then it's around 2,000
 
 ```{r}
 tmap_mode("plot")
@@ -156,7 +156,7 @@ tm_shape(points_sub_2020) +
 ```
 ## Data analysis
 
-
+### First: Point pattern analysis
 Let's do some point pattern analysis...
 
 error that only projected coordinates can be used for ppp object! let's project - https://epsg.io/2263. Note that this is in feet. 
@@ -346,7 +346,7 @@ sum(community_nb.lw)
 community_nb.lw <- community_nb %>%
   nb2listw(., style="W")
 ```
-
+### Second: Spatial autocorrelation
 
 Moran's I
 
